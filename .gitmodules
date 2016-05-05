@@ -1,3 +1,0 @@
-[submodule "FFMpeg"]
-	path = FFMpeg
-	url = git@github.com:PyGoogle/FFMpeg.git
