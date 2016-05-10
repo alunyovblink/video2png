@@ -120,7 +120,8 @@ class VideoPNGExtractor:
         png_filepath = os.path.join(self.video_dirpath, VIDEO_PNG_FRAME_NAME)
 
         # collecting video filtering options
-        video_filter = "select='eq(pict_type,PICT_TYPE_I)'";
+        #video_filter = "select='eq(pict_type,PICT_TYPE_I)'";
+        video_filter = "select='gt(scene\, 0.005)'";
 
         # setting scale options
         # width scale
@@ -155,15 +156,7 @@ class VideoPNGExtractorError(Exception):
         return repr(self.value)
 
 def main(argv):
-    #extractor = VideoPNGExtractor('https://vimeo.com/164152168', {'height' : 370});
-    #extractor = VideoPNGExtractor('https://vimeo.com/164152168', {'width': 320, 'height': 540});
-    #extractor = VideoPNGExtractor('https://vimeo.com/164152168', {'width': 320, 'height': 360});
-
-    #extractor = VideoPNGExtractor('https://vimeo.com/164152168', {'width': 320, 'height': 720});
-    #extractor.download()
-
     extractor = VideoPNGExtractor('temp/test.mp4', {'width': 1024, 'height': 720});
-
     #extractor = VideoPNGExtractor('temp/test.mp4');
     extractor.load()
 

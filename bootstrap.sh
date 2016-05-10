@@ -30,3 +30,4 @@ sudo apt-get install pngcrush python-opencv python-numpy python-scipy -y
 #sudo apt-get install ffmpeg -y
 
 #sudo apt-get install pngcrush python-opencv python-numpy python-scipy
+#sudo apt-get install imagemagick
