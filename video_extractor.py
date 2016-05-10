@@ -7,7 +7,7 @@ Contains class VideoExtractor for extracting png from mp4, mkv, webm videos.
 '''
 
 import youtube_dl
-import sys
+import sys, os
 import subprocess
 
 # Define work folder.
@@ -64,14 +64,21 @@ class VideoPNGExtractor:
         extension = meta['ext']
         video_filename = video_title + '.' + extension
 
-        filter_format = None
-        if self.height is not None:
-            filter_format = 'bestvideo[height <=? %(height)i]+bestaudio/best[height <=? %(height)i]' % {"height": self.height}
+        # create the folder for video
+        video_dirpath = os.path.join(VIDEO_PNG_DIR, video_title);
+        if not os.path.exists(video_dirpath):
+            os.makedirs(video_dirpath);
+
+        # create the full path for video file
+        video_filepath = os.path.join(video_dirpath, video_filename);
 
         #
-        cmd = ['youtube-dl', '-k', '-o', video_filename, self.download_url];
+        cmd = ['youtube-dl', '-k', '-o', video_filepath, self.download_url];
 
-        if filter_format is not None:
+        filter_format = None
+        if self.height is not None:
+            filter_format = 'bestvideo[height <=? %(height)i]+bestaudio/best[height <=? %(height)i]' % {
+                "height": self.height}
             cmd.extend(['-f', filter_format]);
 
         #cmd.extend(['-k', '-o', video_filename, self.download_url]);
@@ -97,7 +104,9 @@ class VideoPNGExtractorError(Exception):
 
 def main(argv):
     #extractor = VideoPNGExtractor('https://vimeo.com/164152168', {'height' : 370});
-    extractor = VideoPNGExtractor('https://vimeo.com/164152168', {'width': 320, 'height': 540});
+    #extractor = VideoPNGExtractor('https://vimeo.com/164152168', {'width': 320, 'height': 540});
+    #extractor = VideoPNGExtractor('https://vimeo.com/164152168', {'width': 320, 'height': 360});
+    extractor = VideoPNGExtractor('https://vimeo.com/164152168', {'width': 320, 'height': 720});
     extractor.download();
 
 if __name__ == "__main__":
