@@ -31,6 +31,7 @@ class VideoPNGExtractor:
     fps = 5
 
     # file
+    video_title = ''
     video_dirpath = ''
     video_filepath = ''
 
@@ -81,7 +82,7 @@ class VideoPNGExtractor:
         self.video_filepath = path
         video_filename = os.path.basename(path)
         video_title = os.path.splitext(video_filename)[0]
-        self.title = video_title
+        self.video_title = self.title = video_title
         self.create_work_folder(video_title)
 
     def download(self):
@@ -99,6 +100,8 @@ class VideoPNGExtractor:
         # renaming the file
         # remove special characters from the file name
         video_title = ''.join(c for c in meta['title'] if c.isalnum() or c == '-' or c == '_')
+        self.video_title = video_title
+
         extension = meta['ext']
         video_filename = video_title + '.' + extension
 
@@ -150,7 +153,7 @@ class VideoPNGExtractor:
         video_filter += ",%(scale)s" % {"scale" : scale}
 
 
-        video_gif = os.path.join(self.video_dirpath, 'output.gif')
+        video_gif = os.path.join(self.video_dirpath, self.video_title + '.gif')
         self.video_gif = video_gif
         cmd = ['ffmpeg', '-v','warning', '-i', self.video_filepath, '-vf', video_filter, '-vsync', 'vfr', video_gif]
 
@@ -161,7 +164,7 @@ class VideoPNGExtractor:
         subprocess.call(cmd)
 
     def create_apng(self):
-        video_apng = os.path.join(self.video_dirpath, 'output.png')
+        video_apng = os.path.join(self.video_dirpath, self.video_title + '.png')
         self.video_apng = video_apng
         cmd = ['gif2apng', self.video_gif, self.video_apng]
 
