@@ -14,6 +14,10 @@ import subprocess
 VIDEO_PNG_DIR = 'files'
 VIDEO_PNG_FRAME_NAME = 'screen_%6d.png'
 
+# HTML Template file
+HTML_TEMPLATE_DIRPATH = 'templates'
+HTML_TEMPLATE_FILENAME = 'video_canvas.html'
+
 class VideoPNGExtractor:
     extension_list = ['mkv', 'mp4', 'webm']
 
@@ -121,7 +125,8 @@ class VideoPNGExtractor:
 
         # collecting video filtering options
         #video_filter = "select='eq(pict_type,PICT_TYPE_I)'";
-        video_filter = "select='gt(scene\, 0.005)'";
+        #video_filter = "select='gt(scene\, 0.005)'"
+        video_filter = "fps=fps=5"
 
         # setting scale options
         # width scale
@@ -141,6 +146,8 @@ class VideoPNGExtractor:
             scale = "scale='if(gt(a,%(width)i/%(height)i),%(width)i,-1)':'if(gt(a,%(width)i/%(height)i),-1,%(height)i)'" % {"width" : width, "height" : height}
             video_filter += ",%(scale)s" % {"scale" : scale}
 
+        #cmd = ['ffmpeg', '-i', self.video_filepath, '-vcodec', 'png', '-f', 'image2', '-vf', video_filter, '-vsync', 'vfr', png_filepath]
+        #cmd = ['ffmpeg', '-r', '24', '-i', self.video_filepath, '-vf', video_filter, png_filepath]
         cmd = ['ffmpeg', '-i', self.video_filepath, '-f', 'image2', '-vf', video_filter, '-vsync', 'vfr', png_filepath]
 
         print("creating frames...");
@@ -156,9 +163,10 @@ class VideoPNGExtractorError(Exception):
         return repr(self.value)
 
 def main(argv):
-    extractor = VideoPNGExtractor('temp/test.mp4', {'width': 1024, 'height': 720});
-    #extractor = VideoPNGExtractor('temp/test.mp4');
+    extractor = VideoPNGExtractor('files/DrudeD8Demo_720.mp4');
     extractor.load()
+    #extractor = VideoPNGExtractor('https://vimeo.com/164152168');
+    #extractor.download()
 
     extractor.extract_frames()
 
