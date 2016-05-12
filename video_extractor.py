@@ -9,12 +9,13 @@ Contains class VideoExtractor for extracting png from mp4, mkv, webm videos.
 import youtube_dl
 import sys, os
 import subprocess
+import argparse
 
 # Define work folder.
 VIDEO_PNG_DIR = 'files'
 
 class VideoPNGExtractor:
-    extension_list = ['mkv', 'mp4', 'webm']
+    #extension_list = ['mkv', 'mp4', 'webm']
 
     # video title
     title = ''
@@ -25,6 +26,9 @@ class VideoPNGExtractor:
     # size
     width = None
     height = None
+
+    # fps
+    fps = 5
 
     # file
     video_dirpath = ''
@@ -49,8 +53,11 @@ class VideoPNGExtractor:
         if 'height' in args: self.height = args['height']
 
         #if (self.width is None and self.height is not None) or (self.width is not None and self.height is None):
-        if bool(self.width is not None) ^ bool(self.height is not None):
-          raise VideoPNGExtractorError("Size should be set as pair of Width and Height")
+        #if bool(self.width is not None) ^ bool(self.height is not None):
+        #  raise VideoPNGExtractorError("Size should be set as pair of Width and Height")
+
+        # set FPS
+        if 'fps' in args and args['fps'] is not None: self.fps = args['fps']
 
         # Set password
         if 'password' in args: self.password = args['password']
@@ -119,7 +126,7 @@ class VideoPNGExtractor:
         self.video_filepath = video_filepath
 
     def create_gif(self):
-        video_filter = "fps=5"
+        video_filter = "fps=%(fps)i" % {"fps" : self.fps}
 
         # setting scale options
         # width scale
@@ -135,7 +142,7 @@ class VideoPNGExtractor:
             height = self.height
 
         # adding scale options to video filtering
-        if width <> -1 and height <> -1:
+        if width <> -1 or height <> -1:
             scale = "scale='if(gt(a,%(width)i/%(height)i),%(width)i,-1)':'if(gt(a,%(width)i/%(height)i),-1,%(height)i)'" % {"width" : width, "height" : height}
             video_filter += ",%(scale)s" % {"scale" : scale}
 
@@ -143,8 +150,8 @@ class VideoPNGExtractor:
         self.video_gif = video_gif
         cmd = ['ffmpeg', '-v','warning', '-i', self.video_filepath, '-vf', video_filter, '-vsync', 'vfr', video_gif]
 
-        print("creating frames...");
-        print(cmd);
+        print("creating frames...")
+        print(cmd)
 
         # create iframes
         subprocess.call(cmd)
@@ -162,14 +169,36 @@ class VideoPNGExtractorError(Exception):
     def __str__(self):
         return repr(self.value)
 
-def main(argv):
-    extractor = VideoPNGExtractor('files/DrudeD8Demo_720.mp4', {'width' : 1024, 'height' : 768});
-    extractor.load()
-    #extractor = VideoPNGExtractor('https://vimeo.com/164152168');
-    #extractor.download()
+def check_args(args=None):
 
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-u', '--url',
+                        help='youtube/vimeo video\'s url',
+                        required='True')
+
+    parser.add_argument('-width', '--width', type=int,
+                        help='width of generated gif/apng')
+
+    parser.add_argument('-height', '--height', type=int,
+                        help='height of generated gif/apng')
+
+    parser.add_argument('-fps', '--fps', type=int,
+                        help='number of frames per second')
+
+
+    results = parser.parse_args(args)
+    return (results.url,
+            results.width,
+            results.height,
+            results.fps)
+
+
+if __name__ == "__main__":
+    url, width, height, fps = check_args(sys.argv[1:])
+    extractor = VideoPNGExtractor(url, {'width': width, 'height': height, 'fps': fps});
+    extractor.download()
     extractor.create_gif()
     extractor.create_apng()
 
-if __name__ == "__main__":
-	main(sys.argv[1:])
+# python video_extractor.py -u https://vimeo.com/164152168
