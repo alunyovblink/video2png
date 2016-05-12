@@ -142,9 +142,13 @@ class VideoPNGExtractor:
             height = self.height
 
         # adding scale options to video filtering
-        if width <> -1 or height <> -1:
+        if width <> -1 and height <> -1:
             scale = "scale='if(gt(a,%(width)i/%(height)i),%(width)i,-1)':'if(gt(a,%(width)i/%(height)i),-1,%(height)i)'" % {"width" : width, "height" : height}
-            video_filter += ",%(scale)s" % {"scale" : scale}
+        else:
+            scale = "scale='%(width)i:%(height)i'" % {"width" : width, "height" : height}
+
+        video_filter += ",%(scale)s" % {"scale" : scale}
+
 
         video_gif = os.path.join(self.video_dirpath, 'output.gif')
         self.video_gif = video_gif
