@@ -12,11 +12,6 @@ import subprocess
 
 # Define work folder.
 VIDEO_PNG_DIR = 'files'
-VIDEO_PNG_FRAME_NAME = 'screen_%6d.png'
-
-# HTML Template file
-HTML_TEMPLATE_DIRPATH = 'templates'
-HTML_TEMPLATE_FILENAME = 'video_canvas.html'
 
 class VideoPNGExtractor:
     extension_list = ['mkv', 'mp4', 'webm']
@@ -34,6 +29,10 @@ class VideoPNGExtractor:
     # file
     video_dirpath = ''
     video_filepath = ''
+
+    # converted files
+    video_gif = ''
+    video_apng = ''
 
     # auth
     password = None
@@ -119,14 +118,8 @@ class VideoPNGExtractor:
         # set file path
         self.video_filepath = video_filepath
 
-    def extract_frames(self):
-        # setting png files names
-        png_filepath = os.path.join(self.video_dirpath, VIDEO_PNG_FRAME_NAME)
-
-        # collecting video filtering options
-        #video_filter = "select='eq(pict_type,PICT_TYPE_I)'";
-        #video_filter = "select='gt(scene\, 0.005)'"
-        video_filter = "fps=fps=5"
+    def create_gif(self):
+        video_filter = "fps=5"
 
         # setting scale options
         # width scale
@@ -146,14 +139,21 @@ class VideoPNGExtractor:
             scale = "scale='if(gt(a,%(width)i/%(height)i),%(width)i,-1)':'if(gt(a,%(width)i/%(height)i),-1,%(height)i)'" % {"width" : width, "height" : height}
             video_filter += ",%(scale)s" % {"scale" : scale}
 
-        #cmd = ['ffmpeg', '-i', self.video_filepath, '-vcodec', 'png', '-f', 'image2', '-vf', video_filter, '-vsync', 'vfr', png_filepath]
-        #cmd = ['ffmpeg', '-r', '24', '-i', self.video_filepath, '-vf', video_filter, png_filepath]
-        cmd = ['ffmpeg', '-i', self.video_filepath, '-f', 'image2', '-vf', video_filter, '-vsync', 'vfr', png_filepath]
+        video_gif = os.path.join(self.video_dirpath, 'output.gif')
+        self.video_gif = video_gif
+        cmd = ['ffmpeg', '-v','warning', '-i', self.video_filepath, '-vf', video_filter, '-vsync', 'vfr', video_gif]
 
         print("creating frames...");
         print(cmd);
 
         # create iframes
+        subprocess.call(cmd)
+
+    def create_apng(self):
+        video_apng = os.path.join(self.video_dirpath, 'output.png')
+        self.video_apng = video_apng
+        cmd = ['gif2apng', self.video_gif, self.video_apng]
+
         subprocess.call(cmd)
 
 class VideoPNGExtractorError(Exception):
@@ -163,12 +163,13 @@ class VideoPNGExtractorError(Exception):
         return repr(self.value)
 
 def main(argv):
-    extractor = VideoPNGExtractor('files/DrudeD8Demo_720.mp4');
+    extractor = VideoPNGExtractor('files/DrudeD8Demo_720.mp4', {'width' : 1024, 'height' : 768});
     extractor.load()
     #extractor = VideoPNGExtractor('https://vimeo.com/164152168');
     #extractor.download()
 
-    extractor.extract_frames()
+    extractor.create_gif()
+    extractor.create_apng()
 
 if __name__ == "__main__":
 	main(sys.argv[1:])
