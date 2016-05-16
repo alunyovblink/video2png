@@ -11,6 +11,8 @@ import sys, os
 import subprocess
 import argparse
 
+from urlparse import urlparse
+
 # Define work folder.
 VIDEO_PNG_DIR = 'files'
 
@@ -66,6 +68,17 @@ class VideoPNGExtractor:
         # Set URL.
         self.download_url = download_url
 
+    def process(self):
+        query = urlparse(self.download_url)
+        if query.hostname in ('www.youtube.com', 'youtube.com', 'youtu.be', 'vimeo.com', 'www.vimeo.com'):
+            self.download()
+        else:
+            self.load()
+
+        self.create_gif()
+        self.create_apng()
+
+
     def create_work_folder(self, video_title):
         video_dirpath = os.path.join(VIDEO_PNG_DIR, video_title)
         if not os.path.exists(video_dirpath):
@@ -112,13 +125,17 @@ class VideoPNGExtractor:
         video_filepath = os.path.join(self.video_dirpath, video_filename)
 
         #
-        cmd = ['youtube-dl', '-k', '-o', video_filepath, self.download_url]
+        #cmd = ['youtube-dl', '-k', '-o', video_filepath, self.download_url]
 
         # if height was set then setting filter format for video
         if self.height is not None:
-            filter_format = 'bestvideo[height <=? %(height)i]+bestaudio/best[height <=? %(height)i]' % {
+            filter_format = 'bestvideo[height<=%(height)i]+worstaudio/worst[height<=(height)i]' % {
                 "height": self.height}
-            cmd.extend(['-f', filter_format])
+        else:
+            filter_format = 'bestvideo+worstaudio/worst'
+
+        #cmd.extend(['-f', filter_format])
+        cmd = ['youtube-dl', '-f', filter_format, '-k', '-o', video_filepath, self.download_url]
 
         print("request=%s" % cmd)
 
@@ -156,6 +173,7 @@ class VideoPNGExtractor:
         video_gif = os.path.join(self.video_dirpath, self.video_title + '.gif')
         self.video_gif = video_gif
         cmd = ['ffmpeg', '-v','warning', '-i', self.video_filepath, '-vf', video_filter, '-vsync', 'vfr', video_gif]
+        #cmd = ['ffmpeg', '-v', 'warning', '-i', self.video_filepath, '-vf', video_filter, '-gifflags', '+transdiff', video_gif]
 
         print("creating frames...")
         print(cmd)
@@ -203,9 +221,7 @@ def check_args(args=None):
 
 if __name__ == "__main__":
     url, width, height, fps = check_args(sys.argv[1:])
-    extractor = VideoPNGExtractor(url, {'width': width, 'height': height, 'fps': fps});
-    extractor.download()
-    extractor.create_gif()
-    extractor.create_apng()
+    extractor = VideoPNGExtractor(url, {'width': width, 'height': height, 'fps': fps})
+    extractor.process()
 
 # python video_extractor.py -u https://vimeo.com/164152168
